@@ -1,0 +1,27 @@
+{
+  "name": "hospital",
+  "version": "1.0.0",
+  "description": "Hospital management system with Express and PostgreSQL",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js"
+  },
+  "keywords": [
+    "hospital",
+    "express",
+    "postgresql",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1",
+    "pg": "^8.18.0",
+    "cors": "^2.8.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

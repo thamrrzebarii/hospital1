@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ku" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;500;700&display=swap" rel="stylesheet">
+    <title>H-SYSTEM PRO | گەڕیانا زیرەک</title>
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; scroll-behavior: smooth; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .patient-card:active { transform: scale(0.98); }
+        .date-header { position: sticky; top: 0; z-index: 10; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-indigo-50 min-h-screen p-4 md:p-8 text-right">
+
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-indigo-900 mb-2 italic">🏥 H-SYSTEM PRO</h1>
+            <p class="text-slate-500 font-medium italic">گەڕیان ب ناڤی یان ب ڕێکەوتێ (DD/MM/YYYY)</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-1">
+                <div class="glass-card p-6 rounded-3xl shadow-xl border border-white sticky top-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6 border-b pb-3 text-right text-indigo-600">📝 تۆمارکرنا نوو</h2>
+                    <form id="pForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">ناڤێ نەخۆشی</label>
+                            <input type="text" id="name" placeholder="ناڤێ سیانی..." class="w-full p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-right" required>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">تەمەن</label>
+                                <input type="number" id="age" placeholder="تەمەن" class="w-full p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-right" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-1">مۆبایل</label>
+                                <input type="text" id="phone" placeholder="07XX..." class="w-full p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-right">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">نیشانێن نەخۆشیێ</label>
+                            <textarea id="illness" rows="3" placeholder="وەسفێ حالەتی..." class="w-full p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-right"></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95">
+                            پاشکەفت بکە 📥
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-4">
+                
+                <div class="bg-white p-4 rounded-3xl shadow-md border border-gray-100 flex gap-4 items-center">
+                    <div class="relative flex-1">
+                        <span class="absolute left-4 top-3 text-gray-400">🔍</span>
+                        <input type="text" id="searchInput" onkeyup="filterPatients()" placeholder="بگەڕی (ناڤ، مۆبایل، یان ڕێکەوت 10/02)..." 
+                        class="w-full pl-10 pr-4 p-3 border rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 text-right text-sm">
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+                    <div class="bg-indigo-900 p-5 flex justify-between items-center">
+                        <h2 class="text-white font-bold text-lg">👥 لیستا نەخۆشان</h2>
+                        <span id="patientCount" class="bg-indigo-700 text-indigo-100 px-3 py-1 rounded-full text-xs font-bold font-mono">0 Patients</span>
+                    </div>
+                    
+                    <div id="patientListContainer" class="p-4 space-y-6 max-h-[650px] overflow-y-auto">
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // IPAddress یا خۆ ل ڤێرێ بنڤیسە بۆ مۆبایلێ
+    const API_URL = 'http://172.20.10.2:5000/api/patients'; 
+    let allPatients = [];
+
+    async function loadPatients() {
+        try {
+            const res = await fetch(API_URL);
+            allPatients = await res.json();
+            renderList(allPatients);
+        } catch (err) {
+            console.error("Error:", err);
+            document.getElementById('patientListContainer').innerHTML = '<p class="text-center text-red-500 p-10 font-bold">❌ سێرڤەر کار ناکەت!</p>';
+        }
+    }
+
+    // فۆنکشنا رێندەرکرنا لیستێ
+    function renderList(data) {
+        const container = document.getElementById('patientListContainer');
+        document.getElementById('patientCount').innerText = `${data.length} نەخۆش`;
+        container.innerHTML = '';
+
+        if(data.length === 0) {
+            container.innerHTML = '<div class="text-center p-10 text-gray-400">چ چو ئەنجام نەهاتنە دۆزینەوە 🔍</div>';
+            return;
+        }
+
+        // گرووپکرن ل دویڤ ڕێکەوتێ
+        const grouped = data.reduce((acc, p) => {
+            const date = p.date || 'بێ ڕێکەوت';
+            if (!acc[date]) acc[date] = [];
+            acc[date].push(p);
+            return acc;
+        }, {});
+
+        for (const date in grouped) {
+            let section = document.createElement('div');
+            section.className = "space-y-2 mb-4";
+            
+            section.innerHTML = `
+                <div class="date-header bg-indigo-50 p-2 px-4 font-bold text-indigo-800 border-r-4 border-indigo-600 rounded-lg shadow-sm text-sm mb-3">
+                    📅 ڕێکەوت: ${date}
+                </div>
+            `;
+
+            grouped[date].forEach(p => {
+                let card = document.createElement('div');
+                card.className = "patient-card flex justify-between items-center p-4 bg-white hover:bg-slate-50 cursor-pointer rounded-2xl border border-gray-100 transition-all shadow-sm";
+                card.onclick = () => showProfile(p);
+                card.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
+                            ${p.name.charAt(0)}
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-slate-800">${p.name}</span>
+                            <span class="text-xs text-slate-400 font-mono">${p.phone || 'بێ مۆبایل'}</span>
+                        </div>
+                    </div>
+                    <div class="text-indigo-600 text-[10px] font-bold bg-indigo-50 px-2 py-1 rounded-lg">DETAILS</div>
+                `;
+                section.appendChild(card);
+            });
+            container.appendChild(section);
+        }
+    }
+
+    // فۆنکشنا گەڕیانا زیرەک (ناڤ + ڕێکەوت + مۆبایل)
+    function filterPatients() {
+        const term = document.getElementById('searchInput').value.toLowerCase().trim();
+        
+        const filtered = allPatients.filter(p => {
+            const nameMatch = p.name.toLowerCase().includes(term);
+            const dateMatch = p.date && p.date.includes(term); // ل ڕێکەوتێ ژی دگەڕێت
+            const phoneMatch = p.phone && p.phone.includes(term); // ل مۆبایلێ ژی دگەڕێت
+            
+            return nameMatch || dateMatch || phoneMatch;
+        });
+        
+        renderList(filtered);
+    }
+
+    function showProfile(p) {
+        Swal.fire({
+            title: `<span class="text-indigo-900 font-bold">پڕۆفایلێ نەخۆشی</span>`,
+            html: `
+                <div class="text-right space-y-4 p-2 animate__animated animate__fadeIn">
+                    <div class="bg-indigo-600 p-5 rounded-3xl text-white shadow-lg shadow-indigo-200">
+                        <div class="text-[10px] opacity-80 mb-1 italic">ناوی تەمام</div>
+                        <div class="text-2xl font-bold">${p.name}</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-gray-100">
+                            <div class="text-[10px] text-gray-400 italic font-bold">تەمەن</div>
+                            <div class="font-bold text-indigo-900">${p.age} ساڵ</div>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-gray-100">
+                            <div class="text-[10px] text-gray-400 italic font-bold">مۆبایل</div>
+                            <div class="font-bold text-indigo-900 font-mono">${p.phone || '---'}</div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-3xl border border-gray-100 text-right">
+                        <div class="text-[10px] text-indigo-500 mb-2 italic font-bold">📋 وەسف و نیشانەکان</div>
+                        <div class="text-sm text-slate-600 leading-relaxed font-medium">${p.illness || 'نیشانە نینن'}</div>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px] text-gray-400 font-mono px-2">
+                        <span>سەردان: ${p.date}</span>
+                        <span>ID: #${p.id}</span>
+                    </div>
+                </div>
+            `,
+            confirmButtonText: 'داخستن',
+            confirmButtonColor: '#4f46e5',
+            customClass: { popup: 'rounded-[2.5rem]' }
+        });
+    }
+
+    document.getElementById('pForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = {
+            name: document.getElementById('name').value,
+            age: parseInt(document.getElementById('age').value),
+            phone: document.getElementById('phone').value,
+            illness: document.getElementById('illness').value
+        };
+
+        try {
+            const res = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+            if (res.ok) {
+                Swal.fire({ icon: 'success', title: 'تۆمار بوو', showConfirmButton: false, timer: 1000 });
+                e.target.reset();
+                loadPatients();
+            }
+        } catch (err) {
+            Swal.fire('هەڵە', 'سێرڤەر کار ناکەت', 'error');
+        }
+    });
+
+    window.onload = loadPatients;
+</script>
+</body>
+</html>
