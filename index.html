@@ -5,116 +5,326 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
-    <title>H-SYSTEM SECURE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <title>H-SYSTEM | Management Elite</title>
     <style>
-        body { font-family: 'Vazirmatn', sans-serif; background: #f8fafc; }
-        .patient-card { transition: all 0.3s ease; }
-        .patient-card:hover { transform: translateY(-2px); }
+        body { font-family: 'Vazirmatn', sans-serif; background: #fdfeff; color: #0f172a; }
+        .bg-premium { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); }
+        .archive-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; }
+        .archive-item.active { background: #4f46e5; color: white; transform: scale(1.05); box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4); }
+        .custom-scroll::-webkit-scrollbar { display: none; }
+        .glass-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .patient-card { transition: all 0.3s ease; border: 1px solid #f1f5f9; }
+        .patient-card:hover { transform: translateY(-4px); border-color: #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05); }
+        .btn-gradient { background: linear-gradient(90deg, #4f46e5 0%, #6366f1 100%); transition: all 0.3s; }
+        .btn-gradient:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        /* --- 🔐 Login Screen Styles --- */
+        #loginOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 3rem;
+            width: 100%;
+            max-width: 400px;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="min-h-screen">
 
-    <div class="max-w-5xl mx-auto">
-        <header class="text-center mb-10">
-            <h1 class="text-3xl font-bold text-indigo-900">🏥 سیستەمێ تۆمارکرنا نەخۆشان</h1>
-            <p class="text-slate-500">پاراستی و تایبەت</p>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-1">
-                <div class="bg-white p-6 rounded-2xl shadow-lg border border-indigo-100">
-                    <form id="pForm" class="space-y-4">
-                        <input type="text" id="name" placeholder="ناڤێ نەخۆشی" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" required>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="number" id="age" placeholder="تەمەن" class="w-full p-3 border rounded-xl outline-none" required>
-                            <input type="text" id="phone" placeholder="مۆبایل" class="w-full p-3 border rounded-xl outline-none">
-                        </div>
-                        <textarea id="illness" placeholder="وەسفێ نەخۆشیێ" class="w-full p-3 border rounded-xl outline-none"></textarea>
-                        <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition">پاشکەفت بکە</button>
-                    </form>
-                </div>
+    <div id="loginOverlay">
+        <div class="login-card">
+            <div class="w-20 h-20 bg-indigo-600 rounded-[2rem] flex items-center justify-center text-4xl mx-auto mb-6 shadow-2xl shadow-indigo-500/20">🏥</div>
+            <h2 class="text-white text-2xl font-black mb-2 tracking-tight">H-SYSTEM</h2>
+            <p class="text-indigo-400 text-[10px] font-bold uppercase tracking-[0.3em] mb-8">Secure Access Only</p>
+            
+            <div class="space-y-4">
+                <input type="password" id="loginKey" placeholder="کلیلی چوونەژوورەوە بنووسە" 
+                    class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl text-white text-center outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-bold placeholder:text-slate-500">
+                <button onclick="checkLogin()" 
+                    class="w-full btn-gradient text-white p-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg">
+                    چوونەژوورەوە
+                </button>
             </div>
-
-            <div class="lg:col-span-2 space-y-4">
-                <input type="text" id="search" onkeyup="searchPatient()" placeholder="🔍 گەڕیان ل ناڤی..." class="w-full p-3 rounded-xl shadow-sm border outline-none focus:ring-2 focus:ring-indigo-400">
-                <div id="patientList" class="space-y-4">
-                    <p class="text-center text-gray-400 py-10">ل چاوەڕێیا داتایێ...</p>
-                </div>
-            </div>
+            <p id="errorMsg" class="text-red-400 text-xs mt-4 font-bold hidden">کلیلەکە هەڵەیە، تکایە دووبارە هەوڵ بدەرەوە</p>
         </div>
     </div>
 
+    <div id="appContent" class="hidden">
+        <header class="sticky top-0 z-50 glass-header border-b border-slate-100 px-6 py-4">
+            <div class="max-w-6xl mx-auto flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
+                        <span class="text-white text-xl">🏥</span>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-black text-slate-800 tracking-tight">H-SYSTEM</h1>
+                        <p class="text-[10px] text-indigo-500 font-bold uppercase tracking-widest">Medical Management</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="logout()" class="text-slate-400 hover:text-red-500 text-xs font-bold px-3 py-2 transition-all">دەرچوون</button>
+                    <button onclick="showAddModal()" class="btn-gradient text-white px-6 py-2.5 rounded-2xl font-bold text-sm shadow-xl shadow-indigo-100 flex items-center gap-2">
+                        <span>+</span> تۆمارکردنی نوێ
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-6xl mx-auto px-6 pt-8 pb-24">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5">
+                    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl font-bold">📊</div>
+                    <div>
+                        <p class="text-slate-400 text-xs font-bold uppercase">کۆی گشتی</p>
+                        <h3 id="totalPatients" class="text-2xl font-black text-slate-800">0</h3>
+                    </div>
+                </div>
+                <div class="bg-indigo-900 p-6 rounded-[2rem] shadow-2xl shadow-indigo-200 flex items-center gap-5 text-white">
+                    <div class="w-14 h-14 bg-white/10 text-white rounded-2xl flex items-center justify-center text-2xl font-bold">📅</div>
+                    <div>
+                        <p class="text-indigo-300 text-xs font-bold uppercase text-right">ئەمڕۆ</p>
+                        <h3 id="todayPatients" class="text-2xl font-black">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-3">
+                    <input type="text" id="search" onkeyup="searchPatient()" placeholder="گەڕان بەپێی ناو یان ژمارە..." 
+                        class="w-full h-full bg-slate-50 border-none outline-none p-3 rounded-xl text-sm placeholder:text-slate-400">
+                </div>
+            </div>
+
+            <div class="mb-10">
+                <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-4 px-2">ئەرشیفی ڕۆژانە</h2>
+                <div id="dateFolders" class="custom-scroll flex gap-3 overflow-x-auto pb-4 px-2"></div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <h2 id="currentViewTitle" class="text-xl font-black text-slate-800 tracking-tight">هەموو نەخۆشەکان</h2>
+                    <div class="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black text-slate-500 uppercase tracking-wider" id="itemCount">0 PATIENTS</div>
+                </div>
+                <div id="patientList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+            </div>
+        </main>
+    </div>
+
     <script>
-        const PRIVATE_KEY = '112233'; // دڤێت وەک یا سێرڤەری بیت
+        const PRIVATE_KEY = '112233'; // کلیلی لۆگین
         const API_URL = '/api/patients';
         let allData = [];
+        let selectedDate = null;
 
-        async function login() {
-            const { value: pass } = await Swal.fire({
-                title: 'چوونەژوورێ',
-                input: 'password',
-                confirmButtonText: 'Login',
-                allowOutsideClick: false
-            });
-            if (pass === PRIVATE_KEY) {
-                fetchData();
+        // --- 🔐 Login Logic ---
+        function checkLogin() {
+            const input = document.getElementById('loginKey').value;
+            const errorMsg = document.getElementById('errorMsg');
+            
+            if (input === PRIVATE_KEY) {
+                localStorage.setItem('hsystem_auth', 'true');
+                initApp();
             } else {
-                Swal.fire('Error', 'کلیل خەلەتە', 'error').then(login);
+                errorMsg.classList.remove('hidden');
+                document.getElementById('loginKey').classList.add('ring-2', 'ring-red-500');
             }
         }
 
+        function initApp() {
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('appContent').classList.remove('hidden');
+            fetchData();
+        }
+
+        function logout() {
+            localStorage.removeItem('hsystem_auth');
+            location.reload();
+        }
+
+        // --- 🏥 Core Logic ---
         async function fetchData() {
             try {
                 const res = await fetch(API_URL, { headers: { 'Authorization': PRIVATE_KEY } });
                 allData = await res.json();
-                render(allData);
-            } catch (err) {
-                console.error("Fetch error");
-            }
+                updateUI();
+            } catch (err) { console.error("Database error"); }
         }
 
-        function render(data) {
+        function updateUI() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('totalPatients').innerText = allData.length;
+            document.getElementById('todayPatients').innerText = allData.filter(p => p.created_at.includes(today)).length;
+            
+            renderFolders();
+            const filtered = selectedDate ? allData.filter(p => p.created_at.includes(selectedDate)) : allData;
+            renderPatients(filtered);
+        }
+
+        function renderFolders() {
+            const folderContainer = document.getElementById('dateFolders');
+            const dates = [...new Set(allData.map(p => new Date(p.created_at).toISOString().split('T')[0]))].sort().reverse();
+            
+            folderContainer.innerHTML = `
+                <div onclick="filterByDate(null)" class="archive-item cursor-pointer px-6 py-3 rounded-2xl text-sm font-bold bg-white border border-slate-100 shadow-sm ${!selectedDate ? 'active' : 'text-slate-500'}">
+                    هەموو
+                </div>
+            ` + dates.map(date => `
+                <div onclick="filterByDate('${date}')" class="archive-item cursor-pointer px-6 py-3 rounded-2xl text-sm font-bold bg-white border border-slate-100 shadow-sm ${selectedDate === date ? 'active' : 'text-slate-500'}">
+                    ${date}
+                </div>
+            `).join('');
+        }
+
+        function filterByDate(date) {
+            selectedDate = date;
+            document.getElementById('currentViewTitle').innerText = date ? `تۆماری ${date}` : "هەموو نەخۆشەکان";
+            updateUI();
+        }
+
+        function renderPatients(data) {
             const list = document.getElementById('patientList');
+            document.getElementById('itemCount').innerText = `${data.length} PATIENTS`;
+            
+            if (data.length === 0) {
+                list.innerHTML = `<div class="col-span-full text-center py-24 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
+                    <p class="text-slate-400 font-bold">هیچ نەخۆشێک لێرە نییە</p>
+                </div>`;
+                return;
+            }
+
             list.innerHTML = data.map(p => `
-                <div class="bg-white p-4 rounded-xl shadow-sm border-r-4 border-indigo-600 patient-card">
-                    <div class="flex justify-between">
-                        <span class="font-bold text-gray-800">${p.name}</span>
-                        <span class="text-xs text-gray-400">${p.date}</span>
+                <div class="bg-white p-6 rounded-[2rem] patient-card relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-2 h-full bg-indigo-600"></div>
+                    <div onclick="viewProfile(${JSON.stringify(p).replace(/"/g, '&quot;')})" class="cursor-pointer">
+                        <div class="flex items-center gap-4 mb-5">
+                            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center font-black text-sm">${p.name.charAt(0)}</div>
+                            <div>
+                                <h3 class="font-black text-slate-800 leading-none mb-1">${p.name}</h3>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">تۆمار: ${p.date.split(' ')[1]}</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs"><span class="text-slate-400">تەمەن</span><span class="font-bold">${p.age} ساڵ</span></div>
+                            <div class="flex justify-between text-xs"><span class="text-slate-400">مۆبایل</span><span class="font-bold">${p.phone || '---'}</span></div>
+                        </div>
                     </div>
-                    <p class="text-sm text-gray-500 mt-1">تەمەن: ${p.age} | مۆبایل: ${p.phone}</p>
-                    <p class="text-indigo-700 mt-2 text-sm font-medium">${p.illness || '...'}</p>
+                    <div class="mt-6 pt-4 border-t border-slate-50 flex justify-between items-center">
+                        <span class="text-[10px] font-black text-indigo-500 uppercase bg-indigo-50 px-2 py-1 rounded-md">پەیوەستە</span>
+                        <button onclick="deletePatient(${p.id})" class="w-8 h-8 rounded-full hover:bg-red-50 text-slate-200 hover:text-red-500 transition-all flex items-center justify-center">🗑️</button>
+                    </div>
                 </div>
             `).join('');
         }
 
         function searchPatient() {
             const val = document.getElementById('search').value.toLowerCase();
-            const filtered = allData.filter(p => p.name.toLowerCase().includes(val));
-            render(filtered);
+            const filtered = allData.filter(p => p.name.toLowerCase().includes(val) || (p.phone && p.phone.includes(val)));
+            renderPatients(filtered);
         }
 
-        document.getElementById('pForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const data = {
-                name: document.getElementById('name').value,
-                age: document.getElementById( 'age').value,
-                phone: document.getElementById('phone').value,
-                illness: document.getElementById('illness').value
-            };
-            const res = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': PRIVATE_KEY },
-                body: JSON.stringify(data)
+        function viewProfile(p) {
+            Swal.fire({
+                title: `<p class="text-slate-800 font-black">${p.name}</p>`,
+                html: `<div class="text-right space-y-4 p-6 bg-slate-50 rounded-[2rem] mt-6">
+                    <div class="flex justify-between border-b border-slate-200 pb-3"><span class="text-slate-400 text-xs">تەمەن</span> <span class="font-bold">${p.age} ساڵ</span></div>
+                    <div class="flex justify-between border-b border-slate-200 pb-3"><span class="text-slate-400 text-xs">مۆبایل</span> <span class="font-bold">${p.phone || 'دیارینەکراوە'}</span></div>
+                    <div class="text-right">
+                        <span class="text-slate-400 text-xs block mb-2">تێبینی و وەسفی نەخۆشی</span>
+                        <p class="bg-white p-4 rounded-2xl border border-slate-200 text-sm text-slate-600 leading-loose">${p.illness || 'هیچ زانیارییەک نەنوسراوە'}</p>
+                    </div>
+                    <p class="text-[9px] text-center text-slate-300 font-mono pt-4 uppercase">Ref ID: ${p.id} • Created: ${p.date}</p>
+                </div>`,
+                showConfirmButton: false, showCloseButton: true, width: '90%'
             });
-            if (res.ok) {
-                Swal.fire({ icon: 'success', title: 'تۆمار بوو', timer: 1000, showConfirmButton: false });
-                e.target.reset();
+        }
+
+        async function showAddModal() {
+            const { value: formValues } = await Swal.fire({
+                title: '<p class="text-slate-800 font-black">تۆمارێکی نوێ</p>',
+                html: `
+                    <div class="flex flex-col gap-4 p-4">
+                        <div class="text-right">
+                            <label class="text-[10px] font-black text-slate-400 uppercase mr-2">ناوی نەخۆش</label>
+                            <input id="swal-name" class="w-full mt-1 p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="ناوی تەواو بنووسە">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-right">
+                                <label class="text-[10px] font-black text-slate-400 uppercase mr-2">تەمەن</label>
+                                <input id="swal-age" type="number" class="w-full mt-1 p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="تەمەن">
+                            </div>
+                            <div class="text-right">
+                                <label class="text-[10px] font-black text-slate-400 uppercase mr-2">مۆبایل</label>
+                                <input id="swal-phone" class="w-full mt-1 p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="07xx xxx xxxx">
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <label class="text-[10px] font-black text-slate-400 uppercase mr-2">وەسفی حاڵەت</label>
+                            <textarea id="swal-illness" class="w-full mt-1 p-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all h-32" placeholder="چ نیشانەیەکی هەیە؟"></textarea>
+                        </div>
+                    </div>`,
+                confirmButtonText: 'تۆمارکردن لە داتابەیس',
+                confirmButtonColor: '#4f46e5',
+                showCancelButton: true,
+                cancelButtonText: 'پاشگەزبوونەوە',
+                customClass: { popup: 'rounded-[2.5rem]', confirmButton: 'rounded-xl px-8 py-3 font-bold' },
+                preConfirm: () => {
+                    const name = document.getElementById('swal-name').value;
+                    const age = document.getElementById('swal-age').value;
+                    if(!name || !age) return Swal.showValidationMessage('تکایە ناو و تەمەن پڕ بکەرەوە');
+                    return {
+                        name: name,
+                        age: age,
+                        phone: document.getElementById('swal-phone').value,
+                        illness: document.getElementById('swal-illness').value
+                    }
+                }
+            });
+
+            if (formValues) {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': PRIVATE_KEY },
+                    body: JSON.stringify(formValues)
+                });
+                if (res.ok) { fetchData(); Swal.fire({icon: 'success', title: 'تۆمارکرا', showConfirmButton: false, timer: 1500 }); }
+            }
+        }
+
+        async function deletePatient(id) {
+            const result = await Swal.fire({
+                title: 'دڵنیای؟',
+                text: "ئەم داتایە ناگەڕێتەوە!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'بەڵێ، بڕەشێنەوە',
+                cancelButtonText: 'نەخێر',
+                customClass: { popup: 'rounded-[2rem]' }
+            });
+            if (result.isConfirmed) {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: { 'Authorization': PRIVATE_KEY } });
                 fetchData();
             }
-        });
+        }
 
-        window.onload = login;
+        // --- 🚀 Start App ---
+        window.onload = () => {
+            const isAuth = localStorage.getItem('hsystem_auth');
+            if (isAuth === 'true') {
+                initApp();
+            }
+        };
     </script>
 </body>
 </html>
